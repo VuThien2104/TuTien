@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Công Pháp • Tu Tiên Giới</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@900&family=Noto+Sans+SC:wght@500;700;900&display=swap');
+
+    :root{
+      --cyan: #7be4ff; --purple: #d4b3ff; --gold: #ffd37b;
+      --dark: #030a1a; --red: #ff6b6b; --green: #51ff8a;
+    }
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{
+      height:100vh;background: radial-gradient(circle at 20% 30%, rgba(123,228,255,0.25), transparent 50%),
+                  radial-gradient(circle at 80% 70%, rgba(255,211,123,0.2), transparent 50%), #030a1a;
+      font-family:'Noto Sans SC', sans-serif;color:white;overflow:hidden;position:relative;
+    }
+    canvas{position:absolute;inset:0;z-index:1}
+
+    .container{position:relative;z-index:10;height:100%;display:flex;flex-direction:column;padding:20px;}
+
+    /* Nút về đại sảnh - chuyển xuống góc dưới-trái */
+    .back-btn{
+      position:fixed;bottom:30px;left:30px;z-index:999;
+      padding:16px 40px;background:var(--cyan);color:#000;
+      border:none;border-radius:60px;font-size:24px;font-weight:900;
+      cursor:pointer;box-shadow:0 0 50px rgba(123,228,255,0.7);
+      transition:all .4s;letter-spacing:3px;
+    }
+    .back-btn:hover{transform:scale(1.1);box-shadow:0 0 80px rgba(123,228,255,1);}
+
+    .header{text-align:center;margin:20px 0 40px;}
+    .title{font-family:'Cinzel Decorative',serif;font-size:90px;
+      background:linear-gradient(90deg,var(--cyan),var(--purple),var(--gold));
+      -webkit-background-clip:text;background-clip:text;color:transparent;
+      text-shadow:0 0 80px rgba(123,228,255,0.7);animation:glow 4s infinite alternate;}
+
+    .tabs{display:flex;justify-content:center;gap:30px;margin-bottom:30px;flex-wrap:wrap;}
+    .tab-btn{padding:15px 50px;font-size:26px;font-weight:900;letter-spacing:4px;
+      background:rgba(3,10,26,0.7);border:3px solid var(--cyan);border-radius:50px;
+      cursor:pointer;transition:all .4s;}
+    .tab-btn.active{border-color:var(--gold);background:linear-gradient(135deg,var(--cyan),var(--gold));color:#000;}
+
+    .skill-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:30px;
+      padding:20px;max-width:1400px;margin:0 auto;justify-content:center;}
+
+    .skill-card{
+      background:rgba(3,10,26,0.9);border:3px solid var(--cyan);border-radius:25px;
+      padding:25px;text-align:center;cursor:pointer;transition:all .5s;
+      box-shadow:0 0 50px rgba(123,228,255,0.3);position:relative;overflow:hidden;
+    }
+    .skill-card:hover{transform:translateY(-20px) scale(1.05);
+      border-color:var(--gold);box-shadow:0 30px 90px rgba(255,215,123,0.7);}
+    .skill-card.owned{border-color:var(--green);}
+    .skill-card.equipped{border:5px solid var(--gold);box-shadow:0 0 100px rgba(255,215,123,0.9);}
+    .skill-icon{font-size:80px;margin-bottom:15px;}
+    .skill-name{font-size:26px;font-weight:900;letter-spacing:3px;margin:15px 0;
+      background:linear-gradient(90deg,var(--cyan),var(--gold));
+      -webkit-background-clip:text;background-clip:text;color:transparent;}
+    .skill-price{color:var(--gold);font-size:22px;font-weight:700;}
+
+    .overlay{position:fixed;inset:0;background:rgba(0,0,0,0.95);z-index:999;
+      display:none;align-items:center;justify-content:center;}
+    .detail-panel{
+      width:90%;max-width:600px;background:rgba(3,10,26,0.97);
+      border:4px solid var(--cyan);border-radius:35px;padding:40px;text-align:center;
+      box-shadow:0 0 120px rgba(123,228,255,0.8);animation:float 6s ease-in-out infinite;
+    }
+    .close-detail{position:absolute;top:15px;right:25px;font-size:50px;cursor:pointer;color:var(--gold);}
+    .detail-title{font-size:58px;margin:20px 0;
+      background:linear-gradient(90deg,var(--cyan),var(--purple),var(--gold));
+      -webkit-background-clip:text;background-clip:text;color:transparent;}
+    .detail-desc{font-size:22px;line-height:1.8;margin:30px 0;}
+    .detail-btn{padding:18px 70px;margin:15px;font-size:26px;border-radius:60px;
+      background:var(--gold);color:#000;border:none;cursor:pointer;font-weight:900;}
+
+    @keyframes glow{from{text-shadow:0 0 60px rgba(123,228,255,0.7)}to{text-shadow:0 0 100px rgba(123,228,255,1)}}
+    @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-20px)}}
+  </style>
+</head>
+<body>
+
+  <canvas id="stars"></canvas>
+
+  <!-- Nút về đại sảnh (góc dưới-trái) -->
+  <button class="back-btn" onclick="backToMain()">VỀ ĐẠI SẢNH</button>
+
+  <div class="container">
+    <div class="header">
+      <h1 class="title">CÔNG PHÁP</h1>
+    </div>
+
+    <div class="tabs">
+      <div class="tab-btn active" onclick="showTab('owned')">ĐÃ SỞ HỮU</div>
+      <div class="tab-btn" onclick="showTab('equipped')">ĐANG SỬ DỤNG</div>
+      <div class="tab-btn" onclick="showTab('shop')">CỬA HÀNG</div>
+    </div>
+
+    <div class="skill-grid" id="skillContainer">
+      <!-- JS sẽ sinh ra -->
+    </div>
+  </div>
+
+  <!-- Popup chi tiết -->
+  <div class="overlay" id="detailOverlay" onclick="closeDetail()">
+    <div class="detail-panel" onclick="event.stopPropagation()">
+      <div class="close-detail" onclick="closeDetail()">×</div>
+      <div class="skill-icon" id="detailIcon"></div>
+      <h2 class="detail-title" id="detailName"></h2>
+      <p class="detail-desc" id="detailDesc"></p>
+      <button class="detail-btn" id="detailAction" onclick="actionSkill()">TU LUYỆN</button>
+    </div>
+  </div>
+
+  <script>
+    // Starfield (giữ nguyên)
+    const canvas = document.getElementById('stars'); const ctx = canvas.getContext('2d');
+    let w = canvas.width = innerWidth; let h = canvas.height = innerHeight;
+    const stars = [];
+    for(let i=0;i<1200;i++) stars.push({x:Math.random()*w,y:Math.random()*h,r:Math.random()*2,a:Math.random()*0.8+0.2});
+    function draw(){ctx.clearRect(0,0,w,h);
+      stars.forEach(s=>{ctx.fillStyle=`rgba(255,255,255,${s.a})`;ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,Math.PI*2);ctx.fill();});
+      requestAnimationFrame(draw);
+    } draw();
+    window.addEventListener('resize',()=>{w=canvas.width=innerWidth;h=canvas.height=innerHeight;});
+
+    // Lấy tên người chơi hiện tại
+    const currentUser = localStorage.getItem('currentUser');
+    if(!currentUser){ alert('Lỗi: Không tìm thấy đạo hữu!'); backToMain(); }
+
+    // Danh sách tất cả công pháp trong game
+    const allSkills = [
+      {id:1, name:"Cửu Dương Thần Công", icon:"陽", desc:"Thần công chí cương chí dương, nội lực vô tận, bá thể bất hoại.", price:0}, // tặng tân thủ
+      {id:2, name:"Hấp Tinh Đại Pháp", icon:"吸", desc:"Hút linh khí đối thủ làm của riêng. Tà đạo chí tôn!", price:50000},
+      {id:3, name:"Độc Cô Cửu Kiếm", icon:"劍", desc:"Kiếm ý vô hình, phá hết thảy chiêu thức trên đời.", price:88888},
+      {id:4, name:"Tử Hạ Thần Công", icon:"霞", desc:"Tím khí đông lai, phòng ngự vô song.", price:99999},
+      {id:5, name:"Bắc Minh Thần Công", icon:"北", desc:"Hấp thụ vạn vật làm nội lực, Bắc Minh hữu ngư...", price:150000},
+    ];
+
+    // Lấy dữ liệu công pháp của người chơi hiện tại
+    let playerData = JSON.parse(localStorage.getItem('playerSkills_' + currentUser) || '{}');
+    // Nếu chưa có dữ liệu → tạo mới (chỉ tặng tân thủ Cửu Dương)
+    if(Object.keys(playerData).length === 0){
+      playerData = {
+        owned: [1],        // chỉ có id 1
+        equipped: 1        // đang dùng Cửu Dương
+      };
+      localStorage.setItem('playerSkills_' + currentUser, JSON.stringify(playerData));
+    }
+
+    // Hiển thị tab
+    function showTab(type){
+      document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+      event.target.classList.add('active');
+      renderSkills(type);
+    }
+
+    function renderSkills(filter){
+      const container = document.getElementById('skillContainer');
+      container.innerHTML = '';
+
+      allSkills.forEach(skill => {
+        const owned = playerData.owned.includes(skill.id);
+        const equipped = playerData.equipped === skill.id;
+
+        if(filter==='owned' && !owned) return;
+        if(filter==='equipped' && !equipped) return;
+        if(filter==='shop' && owned) return;
+
+        const card = document.createElement('div');
+        card.className = `skill-card ${owned?'owned':''} ${equipped?'equipped':''}`;
+        card.innerHTML = `
+          <div class="skill-icon">${skill.icon}</div>
+          <div class="skill-name">${skill.name}</div>
+          ${!owned ? `<div class="skill-price">${skill.price.toLocaleString()} Linh Thạch</div>` : ''}
+        `;
+        card.onclick = () => showDetail(skill, owned, equipped);
+        container.appendChild(card);
+      });
+    }
+
+    let currentSkillDetail = null;
+    function showDetail(skill, owned, equipped){
+      currentSkillDetail = skill;
+      document.getElementById('detailIcon').textContent = skill.icon;
+      document.getElementById('detailName').textContent = skill.name;
+      document.getElementById('detailDesc').textContent = skill.desc;
+
+      const btn = document.getElementById('detailAction');
+      if(equipped) btn.textContent = "ĐÃ TRANG BỊ";
+      else if(owned) btn.textContent = "TRANG BỊ";
+      else btn.textContent = `MUA (${skill.price.toLocaleString()} Linh Thạch)`;
+
+      document.getElementById('detailOverlay').style.display = 'flex';
+    }
+
+    function actionSkill(){
+      const skill = currentSkillDetail;
+      const owned = playerData.owned.includes(skill.id);
+
+      if(owned){
+        // Trang bị
+        playerData.equipped = skill.id;
+        localStorage.setItem('playerSkills_' + currentUser, JSON.stringify(playerData));
+        alert(`Đã trang bị ${skill.name}!`);
+      } else {
+        // Mua (giả lập thành công luôn)
+        if(confirm(`Mua ${skill.name} với ${skill.price.toLocaleString()} Linh Thạch?`)){
+          playerData.owned.push(skill.id);
+          playerData.equipped = skill.id; // tự động trang bị luôn
+          localStorage.setItem('playerSkills_' + currentUser, JSON.stringify(playerData));
+          alert(`Mua thành công! Đã tự động trang bị ${skill.name}!`);
+        }
+      }
+      closeDetail();
+      renderSkills(document.querySelector('.tab-btn.active').textContent.includes('SỞ') ? 'owned' : 
+                   document.querySelector('.tab-btn.active').textContent.includes('DỤNG') ? 'equipped' : 'shop');
+    }
+
+function backToMain() {
+  document.body.style.transition = 'opacity 1s';
+  document.body.style.opacity = '0';
+  setTimeout(() => {
+    window.location.href = '../ChuServer/main.html';  // ĐÃ ĐÚNG 100%
+  }, 1100);
+}
+
+    // Khởi động
+    renderSkills('owned');
+  </script>
+</body>
+</html>

@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tu Tiên Giới • Tu Luyện</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@900&family=Noto+Sans+SC:wght@500;700;900&display=swap');
+
+    :root{
+      --cyan: #7be4ff;
+      --purple: #d4b3ff;
+      --gold: #ffd37b;
+      --dark: #030a1a;
+    }
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{
+      height:100vh;
+      background: radial-gradient(circle at 30% 20%, rgba(123,228,255,0.3), transparent 50%),
+                  radial-gradient(circle at 70% 80%, rgba(212,179,255,0.25), transparent 50%),
+                  #030a1a;
+      font-family:'Noto Sans SC', sans-serif;
+      color:white;overflow:hidden;position:relative;
+      opacity:0;
+      transition:opacity 1.2s ease-in-out;
+    }
+    body.loaded{opacity:1;}
+    canvas{position:absolute;inset:0;z-index:1;}
+
+    .tuluyen-container{
+      position:relative;z-index:10;
+      width:100%;height:100%;
+      display:grid;
+      grid-template-rows: auto 1fr auto;
+      padding:20px;
+      gap:20px;
+    }
+
+    /* Header */
+    .tuluyen-header{
+      position:relative;
+      text-align:center;padding:20px;
+      background:rgba(3,10,26,0.7);
+      border:3px solid var(--cyan);
+      border-radius:30px;
+      backdrop-filter:blur(12px);
+      box-shadow:0 0 80px rgba(123,228,255,0.5);
+    }
+    .tuluyen-title{
+      font-family:'Cinzel Decorative',serif;
+      font-size:68px;
+      background:linear-gradient(90deg,var(--cyan),var(--purple),var(--gold));
+      -webkit-background-clip:text;background-clip:text;color:transparent;
+      text-shadow:0 0 30px rgba(123,228,255,0.6);
+      animation:float 6s ease-in-out infinite;
+    }
+    .back-btn{
+      position:absolute;top:50%;left:30px;
+      transform:translateY(-50%);
+      width:80px;height:80px;
+      background:linear-gradient(135deg,var(--purple),var(--gold));
+      border-radius:50%;
+      display:flex;align-items:center;justify-content:center;
+      font-size:42px;cursor:pointer;
+      box-shadow:0 0 50px rgba(212,179,255,0.8);
+      animation:float 5s ease-in-out infinite;
+      transition:all .4s;
+      z-index:20;
+    }
+    .back-btn:hover{transform:translateY(-50%) scale(1.2) rotate(-90deg);}
+
+    /* Khu vực tu luyện */
+    .practice-area{
+      display:grid;
+      grid-template-columns:repeat(auto-fit, minmax(280px, 1fr));
+      gap:30px;
+      max-width:1200px;
+      margin:0 auto;
+      padding:20px;
+    }
+    .practice-card{
+      background:rgba(3,10,26,0.8);
+      border:3px solid var(--cyan);
+      border-radius:35px;
+      padding:30px;
+      text-align:center;
+      cursor:pointer;
+      transition:all .5s;
+      box-shadow:0 0 50px rgba(123,228,255,0.3);
+      position:relative;overflow:hidden;
+    }
+    .practice-card::before{
+      content:'';position:absolute;inset:0;
+      background:linear-gradient(135deg,transparent 40%,rgba(123,228,255,0.25));
+      transform:translateX(-100%);transition:transform .7s;
+    }
+    .practice-card:hover::before{transform:translateX(100%);}
+    .practice-card:hover{
+      transform:translateY(-20px) scale(1.07);
+      border-color:var(--gold);
+      box-shadow:0 30px 80px rgba(255,215,123,0.7);
+    }
+    .practice-icon{font-size:90px;margin-bottom:20px;text-shadow:0 0 40px var(--cyan);}
+    .practice-name{
+      font-size:32px;font-weight:900;letter-spacing:4px;margin-bottom:15px;
+      background:linear-gradient(90deg,var(--cyan),var(--gold));
+      -webkit-background-clip:text;background-clip:text;color:transparent;
+    }
+    .practice-desc{font-size:18px;opacity:0.9;line-height:1.6;}
+    .practice-reward{
+      margin-top:20px;padding:12px 25px;
+      background:var(--gold);color:#000;
+      border-radius:50px;font-weight:900;font-size:18px;
+      display:inline-block;
+    }
+
+    /* Footer */
+    .tuluyen-footer{
+      text-align:center;padding:20px;
+      background:rgba(3,10,26,0.6);
+      border:2px solid rgba(123,228,255,0.4);
+      border-radius:25px;
+      backdrop-filter:blur(10px);
+    }
+    .energy-bar{
+      display:inline-block;padding:15px 40px;
+      background:rgba(212,179,255,0.2);
+      border-radius:50px;
+      font-size:24px;letter-spacing:2px;
+      animation:pulse 4s infinite;
+    }
+    @keyframes pulse{0%,100%{box-shadow:0 0 20px rgba(212,179,255,0.4)}50%{box-shadow:0 0 50px rgba(212,179,255,0.9)}}
+  </style>
+  <style>
+  /* ... CSS cũ của bạn giữ nguyên ... */
+
+  /* === HIỆU ỨNG TU LUYỆN === */
+  .cultivating-effect {
+    position: fixed; inset: 0; pointer-events: none; z-index: 999;
+  }
+  .aura {
+    position: absolute; width: 300px; height: 300px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(123,228,255,0.6), transparent);
+    animation: auraPulse 3s infinite;
+    left: 50%; top: 50%; transform: translate(-50%, -50%);
+  }
+  @keyframes auraPulse {
+    0%,100% { transform: translate(-50%,-50%) scale(0.8); opacity: 0.4; }
+    50% { transform: translate(-50%,-50%) scale(1.4); opacity: 0.8; }
+  }
+  .particle {
+    position: absolute; width: 6px; height: 6px; background: #7be4ff;
+    border-radius: 50%; box-shadow: 0 0 15px #7be4ff; opacity: 0;
+    animation: floatUp 3s forwards;
+  }
+  @keyframes floatUp {
+    0% { opacity: 1; transform: translateY(0) scale(1); }
+    100% { opacity: 0; transform: translateY(-500px) scale(0); }
+  }
+
+/* ── HIỆU ỨNG ĐỘT PHÁ MỚI: SỢI LINH KHÍ QUAY TRÒN + CHỮ 1 HÀNG ── */
+.cultivating-effect{position:fixed;inset:0;pointer-events:none;z-index:999}
+.aura{
+  position:absolute;width:380px;height:380px;border-radius:50%;
+  border:6px solid transparent;
+  border-top:6px solid #7be4ff;
+  border-right:6px solid #d4b3ff;
+  border-bottom:6px solid #ffd700;
+  border-left:6px solid #7be4ff;
+  left:50%;top:50%;transform:translate(-50%,-50%);
+  animation:spinGlow 4s linear infinite, auraPulse 3s ease-in-out infinite;
+  box-shadow:0 0 60px rgba(123,228,255,0.8);
+}
+@keyframes spinGlow{
+  0%{transform:translate(-50%,-50%) rotate(0deg);}
+  100%{transform:translate(-50%,-50%) rotate(360deg);}
+}
+@keyframes auraPulse{
+  0%,100%{box-shadow:0 0 60px rgba(123,228,255,0.8);opacity:0.7}
+  50%{box-shadow:0 0 120px rgba(123,228,255,1);opacity:1}
+}
+/* Chữ ĐỘT PHÁ THÀNH CÔNG – 1 hàng duy nhất */
+.success-text{
+  position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);
+  font-size:90px !important;font-weight:900;color:#ffd700;
+  text-shadow:0 0 80px #ffd700,0 0 140px #ff6b6b;
+  white-space:nowrap;letter-spacing:8px;
+  animation:successZoom 3.5s forwards;z-index:9999;
+}
+
+  /* === SÉT ĐÁNH + TẨU HỎA NHẬP MA === */
+  .lightning {
+    position: fixed; inset: 0; background: white; opacity: 0;
+    pointer-events: none; z-index: 9999;
+    animation: lightningFlash 0.15s ease-out 3;
+  }
+  @keyframes lightningFlash {
+    0%, 100% { opacity: 0; }
+    10%, 30%, 50% { opacity: 0.9; }
+  }
+  .shake { animation: shake 0.6s; }
+  @keyframes shake {
+    0%,100% { transform: translate(0); }
+    10%,30%,50%,70%,90% { transform: translate(-10px, 10px); }
+    20%,40%,60%,80% { transform: translate(10px, -10px); }
+  }
+  .fail-text {
+    position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    font-size: 90px; color: #ff0040; font-weight: 900;
+    text-shadow: 0 0 50px #ff0040;
+    animation: failPulse 2s infinite;
+  }
+  @keyframes failPulse {
+    0%,100% { opacity: 0.7; transform: translate(-50%,-50%) scale(1); }
+    50% { opacity: 1; transform: translate(-50%,-50%) scale(1.2); }
+  }
+</style>
+</head>
+<body onload="document.body.classList.add('loaded')">
+
+  <canvas id="stars"></canvas>
+
+  <div class="tuluyen-container">
+
+    <!-- Header + Nút quay về -->
+    <div class="tuluyen-header">
+      <div class="back-btn" onclick="goBack()">←</div>
+      <h1 class="tuluyen-title">TU LUYỆN</h1>
+    </div>
+
+<!-- Các phương pháp tu luyện → chỉ để lại 1 cái Thiền Định -->
+<div class="practice-area">
+  <div class="practice-card" id="thienCard">
+    <div class="practice-icon">禅</div>
+    <div class="practice-name" id="actionTitle">Thiền Định</div>
+    <div class="practice-desc" id="thienDesc">
+      <span id="statusText" style="font-size:20px; color:var(--gold);">Nhấn để bắt đầu thiền</span><br><br>
+      <span id="progressText" style="color:#ffd700;"></span>
+    </div>
+    <div class="practice-reward" id="rewardText">+1 Linh lực mỗi giây</div>
+  </div>
+</div>
+    <!-- Footer -->
+    <div class="tuluyen-footer">
+     <div class="energy-bar" id="playerStats">Đang tải thông tin đạo hữu...</div>
+    </div>
+  </div>
+
+  <script>
+    // Starfield
+    const canvas = document.getElementById('stars');
+    const ctx = canvas.getContext('2d');
+    let w = canvas.width = innerWidth;
+    let h = canvas.height = innerHeight;
+    const stars = [];
+    for(let i=0;i<1500;i++){
+      stars.push({x:Math.random()*w,y:Math.random()*h,r:Math.random()*2,a:Math.random()*0.7+0.3});
+    }
+    function draw(){
+      ctx.clearRect(0,0,w,h);
+      stars.forEach(s=>{
+        ctx.fillStyle=`rgba(255,255,255,${s.a})`;
+        ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,Math.PI*2);ctx.fill();
+      });
+      requestAnimationFrame(draw);
+    }
+    draw();
+    window.addEventListener('resize',()=>{w=canvas.width=innerWidth;h=canvas.height=innerHeight;});
+
+    // CHỈ BẤM VÀO NÚT MŨI TÊN MỚI VỀ MAIN
+    function goBack() {
+      document.body.style.opacity = '0';
+      setTimeout(() => {
+        window.location.href = '../ChuServer/main.html';  // Đúng đường dẫn về Đại Sảnh
+      }, 1100);
+    }
+
+    function startPractice(method) {
+      alert(`Đạo hữu đã chọn: ${method}\nBắt đầu bế quan tu luyện... \n(Chờ update tiếp theo nha!)`);
+    }
+
+    // Tùy chọn: vẫn giữ phím ESC để về (rất tiện)
+    document.addEventListener('keydown', e => {
+      if(e.key === 'Escape') goBack();
+    });
+  </script>
+<script>
+  // ==================== DỮ LIỆU + BẢNG ĐỘT PHÁ ====================
+  const currentUser = localStorage.getItem('currentUser') || 'Vô Danh Tiên';
+  let thienInterval = null;
+  let isThien = false;
+
+  const DOT_PHA_TABLE = {
+    "Luyện Khí tầng 1": { next: "Luyện Khí tầng 2", cost: 100,   rate: 80 },
+    "Luyện Khí tầng 2": { next: "Luyện Khí tầng 3", cost: 500,   rate: 70 },
+    "Luyện Khí tầng 3": { next: "Luyện Khí tầng 4", cost: 1200,  rate: 65 },
+    "Luyện Khí tầng 4": { next: "Luyện Khí tầng 5", cost: 2500,  rate: 60 },
+    "Luyện Khí tầng 5": { next: "Luyện Khí tầng 6", cost: 4500,  rate: 55 },
+    "Luyện Khí tầng 6": { next: "Luyện Khí tầng 7", cost: 8000,  rate: 50 },
+    "Luyện Khí tầng 7": { next: "Luyện Khí tầng 8", cost: 13000, rate: 45 },
+    "Luyện Khí tầng 8": { next: "Luyện Khí tầng 9", cost: 20000, rate: 40 },
+    "Luyện Khí tầng 9": { next: "Trúc Cơ sơ kỳ",    cost: 35000, rate: 35 },
+    "Trúc Cơ sơ kỳ":    { next: "Trúc Cơ trung kỳ", cost: 60000, rate: 33 },
+    "Trúc Cơ trung kỳ": { next: "Trúc Cơ đại viên mãn", cost: 100000, rate: 30 },
+    "Trúc Cơ đại viên mãn": { next: "Kim Đan sơ kỳ", cost: 200000, rate: 25 },
+    "Kim Đan sơ kỳ":    { next: "Kim Đan trung kỳ", cost: 400000, rate: 22 },
+    "Kim Đan trung kỳ": { next: "Kim Đan hậu kỳ",   cost: 700000, rate: 20 },
+    "Kim Đan hậu kỳ":   { next: "Kim Đan đại viên mãn", cost: 1200000, rate: 18 },
+    "Kim Đan đại viên mãn": { next: "Nguyên Anh sơ kỳ", cost: 2500000, rate: 15 },
+  };
+
+  // Lấy dữ liệu chuẩn + tự động tạo realm nếu chưa có
+  function getData() {
+    let data = JSON.parse(localStorage.getItem('playerData_' + currentUser) || '{}');
+    if (!data.realm) {
+      data.realm = "Luyện Khí tầng 1";
+      data.power = data.power || 0;
+      data.stone = data.stone || 0;
+      localStorage.setItem('playerData_' + currentUser, JSON.stringify(data));
+    }
+    return data;
+  }
+  function saveData(d) { localStorage.setItem('playerData_' + currentUser, JSON.stringify(d)); }
+
+  // ==================== HIỆU ỨNG (giữ nguyên đẹp lung linh) ====================
+  function startCultivateEffect() {
+    if (document.querySelector('.cultivating-effect')) return;
+    const div = document.createElement('div'); div.className = 'cultivating-effect';
+    div.innerHTML = '<div class="aura"></div>'; document.body.appendChild(div);
+    setInterval(() => {
+      if (!isThien) return;
+      for(let i=0;i<7;i++){
+        const p = document.createElement('div'); p.className='particle';
+        p.style.left = (Math.random()*80+10)+'%'; p.style.bottom='-20px';
+        document.body.appendChild(p);
+        setTimeout(()=>p.remove(),3000);
+      }
+    }, 450);
+  }
+  function stopCultivateEffect() { document.querySelectorAll('.cultivating-effect, .particle').forEach(e=>e.remove()); }
+
+ function breakthroughSuccess() {
+  document.body.classList.add('shake');
+  
+  // Tạo 24 sợi linh khí bay ra từ vòng tròn
+  for(let i=0;i<24;i++){
+    const p = document.createElement('div');
+    p.className = 'particle';
+    const angle = i * 15;
+    const dist = 300 + Math.random()*200;
+    p.style.setProperty('--r', angle + 'deg');
+    p.style.setProperty('--x', Math.cos(angle*Math.PI/180)*dist + 'px');
+    p.style.setProperty('--y', Math.sin(angle*Math.PI/180)*dist + 'px');
+    p.style.left = '50%'; p.style.top = '50%';
+    p.style.transform = 'translate(-50%,-50%)';
+    document.body.appendChild(p);
+    setTimeout(()=>p.remove(), 2600);
+  }
+
+  // Chữ "ĐỘT PHÁ THÀNH CÔNG!" 1 hàng
+  const txt = document.createElement('div');
+  txt.className = 'success-text';
+  txt.textContent = 'ĐỘT PHÁ THÀNH CÔNG!';
+  document.body.appendChild(txt);
+  setTimeout(()=>{txt.remove(); document.body.classList.remove('shake');}, 4000);
+}
+
+  // ==================== CẬP NHẬT GIAO DIỆN (LUÔN LẤY DATA MỚI NHẤT) ====================
+  function updateStats() {
+    const data = getData(); // luôn lấy mới nhất
+    const info = DOT_PHA_TABLE[data.realm];
+    const canBreak = info && data.power >= info.cost;
+
+    document.getElementById('playerStats').innerHTML = `
+      <b>${data.name||currentUser}</b> • ${data.realm}<br>
+      Linh Lực: <b>${data.power.toLocaleString()}</b> 
+      ${isThien?'<span style="color:#7fff7f;">Đang thiền (+1/s)</span>':''}
+      • Linh Thạch: <b>${(data.stone||0).toLocaleString()}</b>
+    `;
+
+    if (canBreak) {
+      document.getElementById('actionTitle').textContent = "ĐỘT PHÁ CẢNH GIỚI";
+      document.getElementById('actionTitle').style.color = "var(--gold)";
+      document.getElementById('rewardText').innerHTML = `Tiêu hao <b>${info.cost.toLocaleString()}</b> Linh lực<br>Thành công: <b>${info.rate}%</b> → ${info.next}`;
+      document.getElementById('rewardText').style.background = "linear-gradient(135deg,#ff6b6b,#f39c12)";
+      document.getElementById('statusText').textContent = "Đủ điều kiện! Nhấn để đột phá";
+      document.getElementById('statusText').style.color = "#ff4757";
+      document.getElementById('progressText').textContent = "";
+      if (isThien) { clearInterval(thienInterval); isThien=false; stopCultivateEffect(); }
+    } else {
+      document.getElementById('actionTitle').textContent = "Thiền Định";
+      document.getElementById('actionTitle').style.color = "";
+      document.getElementById('rewardText').innerHTML = "+1 Linh lực mỗi giây";
+      document.getElementById('rewardText').style.background = "var(--gold)";
+      document.getElementById('statusText').textContent = isThien?"Đang thiền định...":"Nhấn để bắt đầu thiền";
+      document.getElementById('statusText').style.color = isThien?"#7fff7f":"var(--gold)";
+      if (info) document.getElementById('progressText').textContent = `Còn thiếu ${(info.cost-data.power).toLocaleString()} → ${info.next}`;
+      else document.getElementById('progressText').textContent = ""; // tránh lỗi khi bị xóa hết realm
+    }
+    if (isThien && !document.querySelector('.cultivating-effect')) startCultivateEffect();
+  }
+
+  // ==================== THEO DÕI THAY ĐỔI TỪ ADMIN (QUAN TRỌNG NHẤT) ====================
+  window.addEventListener('storage', (e) => {
+    if (e.key === 'playerData_' + currentUser) {
+      // Admin vừa sửa/xóa tu vi → cập nhật ngay lập tức
+      stopThien(); // dừng thiền + hiệu ứng cũ
+      updateStats();
+    }
+  });
+
+  // ==================== XỬ LÝ CLICK ====================
+  document.getElementById('thienCard').addEventListener('click', function() {
+    const data = getData();
+    const info = DOT_PHA_TABLE[data.realm];
+
+    // ĐỘT PHÁ
+    if (info && data.power >= info.cost) {
+      if (!confirm(`Đột phá ${data.realm} → ${info.next} (${info.rate}% thành công)\nXác nhận?`)) return;
+      data.power -= info.cost;
+      const bigBreak = (data.realm.includes('Luyện Khí') && info.next.includes('Trúc Cơ')) || 
+                       (data.realm.includes('Trúc Cơ') && info.next.includes('Kim Đan'));
+
+      if (Math.random()*100 < info.rate) {
+        data.realm = info.next;
+        saveData(data);
+        breakthroughSuccess();
+        if (bigBreak) setTimeout(lightningStrike, 1000);
+      } else {
+        saveData(data);
+        lightningStrike();
+      }
+      updateStats();
+      return;
+    }
+
+    // THIỀN
+    if (isThien) {
+      clearInterval(thienInterval); isThien=false; stopCultivateEffect();
+    } else {
+      isThien = true;
+      document.getElementById('statusText').textContent = "Đang thiền định...";
+      document.getElementById('statusText').style.color = "#7fff7f";
+      thienInterval = setInterval(()=>{
+        let d = getData();
+        d.power += 1;
+        saveData(d);
+        updateStats();
+      },1000);
+    }
+    updateStats();
+  });
+
+  // ==================== KHỞI ĐỘNG + THEO DÕI LIÊN TỤC ====================
+  updateStats();
+  setInterval(updateStats, 1000); // refresh mỗi giây để bắt mọi thay đổi
+</script>
+</body>
+</html>

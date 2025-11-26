@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tu Tiên Giới • Nhập Môn</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@900&family=Noto+Sans+SC:wght@500;700;900&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --cyan: #7be4ff;
+      --purple: #d4b3ff;
+      --gold: #ffd37b;
+      --red: #ff6b6b;
+      --green: #51ffae;
+    }
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{
+      min-height:100vh;
+      background: radial-gradient(circle at 20% 30%, rgba(123,228,255,0.2), transparent 40%),
+                  radial-gradient(circle at 80% 70%, rgba(255,211,123,0.15), transparent 40%),
+                  #030a1a;
+      display:flex;align-items:center;justify-content:center;
+      font-family:'Noto Sans SC', sans-serif;
+      color:white;overflow:hidden;position:relative;
+    }
+    canvas{position:absolute;inset:0;z-index:1;pointer-events:none}
+
+    .container{
+      z-index:10;position:relative;text-align:center;
+      padding:50px 80px;
+      background:rgba(3,10,26,0.78);
+      border-radius:30px;
+      border:2px solid rgba(123,228,255,0.3);
+      box-shadow:0 0 80px rgba(123,228,255,0.4);
+      animation:float 8s ease-in-out infinite;
+      width:90%;max-width:500px;
+    }
+
+    .logo{
+      display:flex;align-items:center;justify-content:center;gap:18px;margin-bottom:30px;
+    }
+    .icon{
+      width:80px;height:80px;
+      background:linear-gradient(135deg,var(--cyan),var(--gold));
+      border-radius:22px;
+      display:flex;align-items:center;justify-content:center;
+      font-size:38px;font-weight:900;color:#020b1a;
+      box-shadow:0 0 50px rgba(123,228,255,0.6);
+    }
+    .game-name{
+      font-size:48px;font-weight:900;letter-spacing:4px;
+      background:linear-gradient(90deg,#fff,var(--cyan));
+      -webkit-background-clip:text;background-clip:text;color:transparent;
+    }
+
+    h1{
+      font-family:'Cinzel Decorative', serif;
+      font-size:68px;font-weight:900;
+      letter-spacing:8px;
+      background:linear-gradient(90deg,var(--cyan),var(--purple),var(--gold));
+      -webkit-background-clip:text;background-clip:text;color:transparent;
+      text-shadow:0 0 60px rgba(123,228,255,0.7);
+      margin-bottom:30px;
+    }
+
+    .tab-buttons{
+      display:flex;gap:12px;margin-bottom:30px;justify-content:center;
+    }
+    .tab-btn{
+      padding:12px 32px;font-size:21px;font-weight:700;
+      background:rgba(255,255,255,0.08);border:2px solid var(--cyan);
+      border-radius:50px;cursor:pointer;transition:all .4s;
+    }
+    .tab-btn.active{
+      background:linear-gradient(90deg,var(--cyan),var(--gold));
+      color:#020b1a;border:none;
+    }
+
+    .form-group{margin:25px 0;position:relative;}
+    .input-wrapper{
+      position:relative;display:flex;align-items:center;
+    }
+    input{
+      width:100%;padding:18px 55px 18px 25px;
+      font-size:20px;font-weight:700;
+      background:rgba(255,255,255,0.1);
+      border:2px solid var(--cyan);
+      border-radius:50px;color:white;outline:none;
+      transition:all .4s;
+    }
+    input:focus{border-color:var(--gold);box-shadow:0 0 30px rgba(255,215,123,0.5);}
+    input::placeholder{color:rgba(255,255,255,0.6)}
+
+     /* Icon mắt + linh khí lơ lửng */
+    .eye-wrapper{
+      position:absolute;right:10px;top:50%;transform:translateY(-50%);
+      width:40px;height:40px;
+      display:flex;align-items:center;justify-content:center;
+      cursor:pointer;
+      z-index:11;
+    }
+    .eye-icon{
+      font-size:26px;color:var(--cyan);
+      text-shadow:0 0 15px var(--cyan);
+      transition:all .3s;
+    }
+    .eye-icon:hover{transform:scale(1.2);text-shadow:0 0 30px var(--gold);color:var(--gold);}
+
+    .btn-action{
+      margin-top:30px;padding:18px 90px;
+      font-size:28px;font-weight:900;letter-spacing:5px;
+      color:#020b1a;
+      background:linear-gradient(90deg,var(--cyan),var(--gold));
+      border:none;border-radius:60px;cursor:pointer;
+      box-shadow:0 15px 50px rgba(123,228,255,0.5);
+      transition:all .4s;
+    }
+    .btn-action:hover{
+      transform:translateY(-8px) scale(1.05);
+      box-shadow:0 25px 70px rgba(123,228,255,0.7);
+    }
+
+    .alert{
+      position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);
+      padding:25px 60px;font-size:26px;font-weight:700;letter-spacing:2px;
+      border-radius:20px;border:3px solid;
+      box-shadow:0 0 80px rgba(0,0,0,0.6);
+      z-index:9999;opacity:0;pointer-events:none;transition:opacity .6s;
+    }
+    .alert.show{opacity:1}
+    .alert.error{background:rgba(255,107,107,0.95);border-color:var(--red);}
+    .alert.success{background:rgba(81,255,174,0.95);border-color:var(--green);}
+
+    @keyframes float{
+      0%,100%{transform:translateY(0)}
+      50%{transform:translateY(-15px)}
+    }
+
+    @media(max-width:480px){
+      h1{font-size:48px}
+      .container{padding:40px 30px}
+      input{font-size:18px;padding:16px 50px 16px 20px}
+      .btn-action{font-size:24px;padding:16px 70px}
+      .icon{width:60px;height:60px;font-size:30px}
+      .game-name{font-size:36px}
+    }
+  </style>
+</head>
+<body>
+
+  <canvas id="stars"></canvas>
+
+  <div class="container">
+    <div class="logo">
+      <div class="icon">仙</div>
+      <div class="game-name">Tu Tiên Giới</div>
+    </div>
+
+    <h1 id="title">Đăng Nhập</h1>
+
+    <div class="tab-buttons">
+      <div class="tab-btn active" data-mode="login">Đăng Nhập</div>
+      <div class="tab-btn" data-mode="register">Đăng Ký</div>
+    </div>
+
+<!-- FORM ĐĂNG NHẬP (mở mặc định) -->
+    <div id="loginForm">
+      <div class="form-group">
+        <div class="input-wrapper">
+          <input type="text" id="loginUsername" placeholder="Đạo hiệu" maxlength="12" autocomplete="off">
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="input-wrapper">
+          <input type="password" id="loginPass" placeholder="Mật khẩu linh khí">
+          <span class="eye" data-target="loginPass">Eye Open</span>
+        </div>
+      </div>
+      <button class="btn-action" id="loginBtn">VÀO GAME</button>
+    </div>
+
+    <!-- FORM ĐĂNG KÝ -->
+    <div id="registerForm" style="display:none">
+      <div class="form-group">
+        <div class="input-wrapper">
+          <input type="text" id="regUsername" placeholder="Đạo hiệu (2-12 ký tự)" maxlength="12" autocomplete="off">
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="input-wrapper">
+          <input type="password" id="regPass" placeholder="Mật khẩu linh khí" maxlength="20">
+          <span class="eye" data-target="regPass">Eye Open</span>
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="input-wrapper">
+          <input type="password" id="regPass2" placeholder="Nhập lại mật khẩu">
+          <span class="eye" data-target="regPass2">Eye Open</span>
+        </div>
+      </div>
+      <button class="btn-action" id="registerBtn">NHẬP MÔN</button>
+    </div>
+  </div>
+
+  <div class="alert" id="alert"></div>
+  
+
+  <script>
+    // Starfield
+    const canvas = document.getElementById('stars');
+    const ctx = canvas.getContext('2d');
+    let w = canvas.width = window.innerWidth;
+    let h = canvas.height = window.innerHeight;
+    const stars = [];
+    for(let i=0;i<1000;i++){
+      stars.push({x:Math.random()*w,y:Math.random()*h,r:Math.random()*1.8,a:Math.random()*0.8+0.2});
+    }
+    function draw(){
+      ctx.clearRect(0,0,w,h);
+      stars.forEach(s=>{ctx.fillStyle=`rgba(255,255,255,${s.a})`;ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,Math.PI*2);ctx.fill();});
+      requestAnimationFrame(draw);
+    }
+    draw();
+    window.addEventListener('resize',()=>{w=canvas.width=innerWidth;h=canvas.height=innerHeight;});
+
+    const users = JSON.parse(localStorage.getItem('tuTienUsers') || '{}');
+
+    // Chuyển tab
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const mode = btn.dataset.mode;
+        document.getElementById('title').textContent = mode === 'login' ? 'Đăng Nhập' : 'Đăng Ký';
+        document.getElementById('loginForm').style.display = mode === 'login' ? 'block' : 'none';
+        document.getElementById('registerForm').style.display = mode === 'login' ? 'none' : 'block';
+      });
+    });
+
+    // Ẩn/hiện mật khẩu bằng con mắt
+    document.querySelectorAll('.eye').forEach(eye => {
+      eye.addEventListener('click', () => {
+        const input = document.getElementById(eye.dataset.target);
+        if(input.type === 'password'){
+          input.type = 'text';
+          eye.textContent = 'Eye Close';
+        } else {
+          input.type = 'password';
+          eye.textContent = 'Eye Open';
+        }
+      });
+    });
+
+    // Đăng ký
+    document.getElementById('registerBtn').addEventListener('click', () => {
+      const name = document.getElementById('regUsername').value.trim();
+      const p1 = document.getElementById('regPass').value;
+      const p2 = document.getElementById('regPass2').value;
+
+      if(!name || !p1 || !p2) return showAlert('Thiếu thông tin đạo hữu!');
+      if(p1 !== p2) return showAlert('Hai mật khẩu không khớp!');
+      if(name.length < 2 || name.length > 12) return showAlert('Đạo hiệu phải 2-12 ký tự!');
+      if(users[name]) return showAlert('Đạo hiệu đã có người chọn!');
+
+      users[name] = p1;
+      localStorage.setItem('tuTienUsers', JSON.stringify(users));
+      showAlert('Đăng ký thành công! Chuyển sang đăng nhập...', true);
+
+      setTimeout(() => {
+        document.querySelector('[data-mode="login"]').click();
+        document.getElementById('loginUsername').value = name;
+        document.getElementById('loginPass').focus();
+      }, 1600);
+    });
+
+    // Đăng nhập
+    document.getElementById('loginBtn').addEventListener('click', () => {
+      const name = document.getElementById('loginUsername').value.trim();
+      const pass = document.getElementById('loginPass').value;
+
+      if(!name || !pass) return showAlert('Nhập đạo hiệu và mật khẩu!');
+      if(users[name] !== pass) return showAlert('Đạo hiệu hoặc mật khẩu sai!');
+
+      localStorage.setItem('currentUser', name);
+      showAlert('Đăng nhập thành công! Khai mở tiên giới...', true);
+
+      setTimeout(() => {
+        document.body.style.transition = 'opacity 1.5s';
+        document.body.style.opacity = '0';
+        setTimeout(() => window.location.href = 'main.html', 1600);
+      }, 1500);
+    });
+
+    function showAlert(msg, success = false){
+      const a = document.getElementById('alert');
+      a.textContent = msg;
+      a.className = 'alert ' + (success ? 'success' : 'error');
+      a.classList.add('show');
+      setTimeout(() => a.classList.remove('show'), 3000);
+    }
+  </script>
+</body>
+</html>

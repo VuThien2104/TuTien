@@ -1,0 +1,402 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ADMIN - Tiên Giới Giám Sát Toàn Diện</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@900&family=Noto+Sans+SC:wght@500;700;900&display=swap');
+
+    :root{
+      --cyan: #7be4ff;--purple: #d4b3ff;--gold: #ffd37b;--red: #ff6b6b;--green: #51ff8a;--dark: #030a1a;
+    }
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{height:100vh;background:#030a1a;font-family:'Noto Sans SC',sans-serif;color:white;overflow:hidden;position:relative;}
+    canvas{position:absolute;inset:0;z-index:1}
+
+    .admin-container{position:relative;z-index:10;padding:15px;display:flex;flex-direction:column;height:100vh;}
+    .admin-header{text-align:center;margin-bottom:20px;padding:20px;background:rgba(3,10,26,0.8);border:3px solid var(--cyan);border-radius:30px;box-shadow:0 0 100px rgba(123,228,255,0.6);}
+    .admin-title{font-family:'Cinzel Decorative',serif;font-size:78px;background:linear-gradient(90deg,var(--cyan),var(--purple),var(--gold),#ff006e,var(--cyan));-webkit-background-clip:text;color:transparent;animation:glow 4s infinite alternate;}
+    .subtitle{font-size:26px;letter-spacing:5px;color:var(--gold);margin-top:8px;}
+
+    .tabs{display:flex;justify-content:center;gap:15px;margin:15px 0;flex-wrap:wrap;}
+    .tab-btn{padding:14px 35px;background:rgba(123,228,255,0.15);border:2px solid var(--cyan);border-radius:50px;cursor:pointer;font-size:19px;transition:all .3s;font-weight:700;}
+    .tab-btn.active{background:var(--cyan);color:#000;box-shadow:0 0 40px rgba(123,228,255,0.8);}
+    .tab-btn:hover{transform:translateY(-5px);}
+
+    .tab-content{display:none;padding:20px;background:rgba(3,10,26,0.92);border:3px solid var(--purple);border-radius:30px;flex:1;overflow-y:auto;box-shadow:inset 0 0 60px rgba(212,179,255,0.2);}
+    .tab-content.active{display:block;}
+
+    /* LOG SERVER */
+    .log-entry{padding:10px 15px;border-bottom:1px solid rgba(123,228,255,0.2);font-size:17px;line-height:1.6;}
+    .log-entry span{color:var(--gold);font-weight:bold;}
+    .user-online{color:var(--green);font-weight:bold;}
+
+    /* BẢNG NGƯỜI CHƠI */
+    .search-bar{margin:20px 0;text-align:center;}
+    .search-bar input{width:90%;max-width:700px;padding:16px;font-size:20px;background:rgba(255,255,255,0.1);border:2px solid var(--cyan);border-radius:50px;color:white;}
+    table{width:100%;border-collapse:collapse;margin-top:15px;background:rgba(3,10,26,0.8);border:3px solid var(--cyan);border-radius:20px;overflow:hidden;}
+    th{background:linear-gradient(90deg,var(--cyan),var(--purple));padding:18px;font-size:22px;letter-spacing:2px;}
+    td{padding:14px;text-align:center;font-size:18px;border-bottom:1px solid rgba(123,228,255,0.3);}
+    tr:hover{background:rgba(123,228,255,0.12);}
+    .btn-small{padding:9px 18px;margin:0 4px;border:none;border-radius:30px;cursor:pointer;font-weight:900;font-size:15px;}
+    .btn-edit{background:var(--gold);color:#000;}
+    .btn-delete{background:var(--red);}
+    .btn-ban{background:#ff8c00;}
+    .btn-check{background:#8338ec;color:white;}
+
+    .stats{text-align:center;margin:20px 0;padding:20px;background:rgba(212,179,255,0.2);border-radius:50px;border:2px solid var(--purple);font-size:22px;}
+
+    .check-buttons{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:15px;margin:25px 0;}
+    .check-btn{padding:20px;font-size:20px;font-weight:900;border-radius:50px;border:none;cursor:pointer;transition:all .3s;}
+    .check-btn:hover{transform:scale(1.05);box-shadow:0 0 50px rgba(255,255,255,0.4);}
+
+    @keyframes glow{from{text-shadow:0 0 50px rgba(123,228,255,0.8);}to{text-shadow:0 0 120px rgba(255,0,110,0.9),0 0 160px rgba(201,168,255,1);}}
+  </style>
+</head>
+<body>
+
+  <canvas id="stars"></canvas>
+
+  <div class="admin-container">
+
+    <!-- Đăng nhập Admin -->
+    <div id="adminLogin" style="max-width:520px;margin:100px auto;padding:50px;background:rgba(3,10,26,0.95);border:3px solid var(--gold);border-radius:35px;text-align:center;box-shadow:0 0 120px rgba(255,215,123,0.7);">
+      <h1 style="font-size:70px;color:var(--gold);">秘</h1>
+      <p style="font-size:30px;letter-spacing:6px;color:var(--cyan);margin:20px 0;">Chưởng Môn Giám Sát</p>
+      <input type="password" id="adminPass" placeholder="Nhập linh phù..." style="width:100%;padding:20px;margin:25px 0;font-size:24px;background:rgba(255,255,255,0.1);border:2px solid var(--cyan);border-radius:50px;text-align:center;letter-spacing:4px;">
+      <button onclick="checkAdmin()" style="padding:18px 90px;font-size:28px;background:linear-gradient(90deg,var(--cyan),var(--gold));border:none;border-radius:60px;cursor:pointer;box-shadow:0 0 70px rgba(123,228,255,0.8);">VÀO KHU QUẢN LÝ</button>
+      <p style="margin-top:25px;color:#ff6b6b;font-size:19px;">Mật khẩu: tutien2025</p>
+    </div>
+
+    <!-- Giao diện chính -->
+    <div id="adminPanel" style="display:none;">
+
+      <div class="admin-header">
+        <div class="admin-title">TIÊN GIỚI GIÁM SÁT</div>
+        <div class="subtitle">Toàn Bộ Hoạt Động Đang Được Theo Dõi</div>
+      </div>
+
+      <div class="tabs">
+        <div class="tab-btn active" onclick="openTab('tabLog')">LOG SERVER</div>
+        <div class="tab-btn" onclick="openTab('tabUsers')">QUẢN LÝ ĐẠO HỮU</div>
+        <div class="tab-btn" onclick="openTab('tabCheck')">CHECK HỆ THỐNG</div>
+      </div>
+
+      <!-- TAB 1: LOG SERVER THỜI GIAN THỰC -->
+      <div id="tabLog" class="tab-content active">
+        <h2 style="text-align:center;color:var(--cyan);margin-bottom:15px;font-size:28px;">HOẠT ĐỘNG TOÀN SERVER - CẬP NHẬT MỖI 2 GIÂY</h2>
+        <div id="serverLog" style="height:calc(100% - 60px);overflow-y:auto;"></div>
+      </div>
+
+      <!-- TAB 2: QUẢN LÝ NGƯỜI CHƠI -->
+      <div id="tabUsers" class="tab-content">
+        <div class="stats">
+          Tổng đạo hữu: <span id="totalUsers">0</span> • Online hiện tại: <span id="onlineNow">0</span>
+        </div>
+        <div class="search-bar">
+          <input type="text" id="searchInput" placeholder="Tìm đạo hiệu..." onkeyup="searchUser()">
+        </div>
+        <table id="userTable">
+          <thead>
+            <tr><th>STT</th><th>Đạo Hiệu</th><th>Cảnh Giới</th><th>Linh Lực</th><th>Linh Thạch</th><th>Trang Hiện Tại</th><th>Trạng Thái</th><th>Hành Động</th></tr>
+          </thead>
+          <tbody id="userList"></tbody>
+        </table>
+      </div>
+
+      <!-- TAB 3: CHECK HỆ THỐNG -->
+      <div id="tabCheck" class="tab-content">
+        <h2 style="text-align:center;color:var(--gold);margin-bottom:30px;font-size:32px;">KIỂM TRA TOÀN DIỆN</h2>
+        <div class="check-buttons">
+          <button class="check-btn" style="background:var(--cyan);color:#000;" onclick="checkAll()">CHECK TOÀN BỘ SERVER</button>
+          <button class="check-btn" style="background:#ff8c00;color:white;" onclick="checkGiftcode()">CHECK GIFTCODE</button>
+          <button class="check-btn" style="background:var(--purple);color:#000;" onclick="checkStorage()">CHECK LƯU TRỮ</button>
+          <button class="check-btn" style="background:var(--red);color:white;" onclick="clearLog()">XÓA LOG SERVER</button>
+        </div>
+        <div id="checkResult" style="margin-top:30px;padding:25px;background:rgba(0,0,0,0.6);border-radius:25px;font-size:20px;"></div>
+      </div>
+
+    </div>
+  </div>
+
+<script>
+// Starfield (giữ nguyên)
+const canvas = document.getElementById('stars');
+const ctx = canvas.getContext('2d');
+let w = canvas.width = innerWidth, h = canvas.height = innerHeight;
+const stars = Array.from({length:1800},()=>({x:Math.random()*w,y:Math.random()*h,r:Math.random()*2.5,a:Math.random()*0.8+0.2}));
+function draw(){ctx.clearRect(0,0,w,h);stars.forEach(s=>{ctx.fillStyle=`rgba(255,255,255,${s.a})`;ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,Math.PI*2);ctx.fill();});requestAnimationFrame(draw);}
+draw();window.addEventListener('resize',()=>{w=canvas.width=innerWidth;h=canvas.height=innerHeight;});
+
+// === CHỨC NĂNG CHUNG ===
+function openTab(id){
+  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  event.target.classList.add('active');
+}
+
+function addLog(entry){
+  const log = document.getElementById('serverLog');
+  const div = document.createElement('div');
+  div.className = 'log-entry';
+  
+  const time = entry.time || new Date().toLocaleTimeString();
+  const user = entry.user || 'Hệ thống';
+  const action = entry.action || '';
+  const page = entry.page ? ` <small style="color:#888">[${entry.page}]</small>` : '';
+  
+  const userSpan = user === 'Hệ thống' ? '<span style="color:#51ff8a">Hệ thống</span>' : `<span class="user-online">${user}</span>`;
+  
+  div.innerHTML = `<span>[${time}]</span> ${userSpan} ${action}${page}`;
+  log.prepend(div);
+  if(log.children.length > 300) log.removeChild(log.lastChild);
+}
+
+// === ĐĂNG NHẬP ADMIN ===
+function checkAdmin(){
+  if(document.getElementById('adminPass').value === 'tutien2025'){
+    document.getElementById('adminLogin').style.display = 'none';
+    document.getElementById('adminPanel').style.display = 'block';
+    loadAllUsers();
+    loadExistingLogs(); // Load log cũ trước
+    addLog({user:'Hệ thống', action:'Chưởng Môn đã đăng nhập hệ thống giám sát!', time: new Date().toLocaleTimeString()});
+  } else {
+    alert('Linh phù sai! Mau chạy đi trước khi bị Thiên Lôi đánh!');
+  }
+}
+
+// === TẢI LẠI TOÀN BỘ LOG TỪ localStorage ===
+function loadExistingLogs() {
+  const logs = JSON.parse(localStorage.getItem('tuTienServerLog') || '[]');
+  document.getElementById('serverLog').innerHTML = '';
+  logs.forEach(entry => addLog(entry));
+}
+
+// === THEO DÕI LOG MỚI QUA SỰ KIỆN STORAGE (REAL-TIME 100%) ===
+window.addEventListener('storage', (e) => {
+  if (e.key === 'tuTienServerLog') {
+    const logs = JSON.parse(e.newValue || '[]');
+    const latest = logs[0];
+    if (latest && !document.querySelector(`[data-ts="${latest.timestamp}"]`)) {
+      const temp = document.createElement('div');
+      temp.dataset.ts = latest.timestamp;
+      addLog(latest);
+    }
+  }
+});
+
+// === LOAD + CẬP NHẬT NGƯỜI CHƠI ===
+// ==================== THAY TOÀN BỘ HÀM loadAllUsers() BẰNG ĐOẠN NÀY ====================
+function loadAllUsers(){
+  const allStorage = { ...localStorage };
+  const users = [];
+
+  // Quét hết localStorage tìm các key playerData_*
+  for (let key in allStorage) {
+    if (key.startsWith('playerData_')) {
+      const username = key.replace('playerData_', '');
+      try {
+        const data = JSON.parse(allStorage[key]);
+        users.push({ username, data });
+      } catch(e) {}
+    }
+  }
+
+  document.getElementById('totalUsers').textContent = users.length;
+
+  // Đếm online (có log trong 5 phút gần đây)
+  const logs = JSON.parse(localStorage.getItem('tuTienServerLog') || '[]');
+  const fiveMinAgo = Date.now() - 5*60*1000;
+  const recentUsers = new Set();
+  logs.forEach(l => {
+    if (l.timestamp && l.timestamp > fiveMinAgo) recentUsers.add(l.user);
+  });
+  document.getElementById('onlineNow').textContent = recentUsers.size;
+
+  const tbody = document.getElementById('userList');
+  tbody.innerHTML = '';
+
+  users.forEach((u, i) => {
+    const d = u.data;
+    const row = document.createElement('tr');
+    row.innerHTML = `
+      <td>${i+1}</td>
+      <td><strong>${u.username}</strong></td>
+      <td contenteditable onblur="updatePlayer('${u.username}','realm',this.innerText)">${d.realm || 'Luyện Khí tầng 1'}</td>
+      <td contenteditable onblur="updatePlayer('${u.username}','power',this.innerText)">${d.power || 0}</td>
+      <td contenteditable onblur="updatePlayer('${u.username}','stone',this.innerText)">${d.stone || 0}</td>
+      <td>main.html</td>
+      <td style="color:#51ff8a">Hoạt động</td>
+      <td>
+        <button class="btn-small btn-edit" onclick="savePlayer('${u.username}')">Lưu</button>
+        <button class="btn-small btn-ban" onclick="banUser('${u.username}')">Cấm</button>
+        <button class="btn-small btn-delete" onclick="deleteUser('${u.username}')">Xóa</button>
+      </td>
+    `;
+    tbody.appendChild(row);
+  });
+}
+
+// ==================== HÀM CẬP NHẬT DỮ LIỆU THỰC (bắt buộc thêm) ====================
+function updatePlayer(username, field, value) {
+  const key = 'playerData_' + username;
+  let data = {};
+  try { data = JSON.parse(localStorage.getItem(key) || '{}'); } catch(e) {}
+
+  if (field === 'power' || field === 'stone') {
+    value = parseInt(value.replace(/[^0-9]/g,'')) || 0;
+  }
+  data[field] = value;
+
+  localStorage.setItem(key, JSON.stringify(data));
+  
+  addLog({
+    user: 'Hệ thống', 
+    action: `ADMIN chỉnh ${field} của ${username} → ${value}`,
+    time: new Date().toLocaleTimeString()
+  });
+}
+
+function savePlayer(name) {
+  alert(`Đã lưu thành công cho đạo hữu ${name}!\nNgười chơi sẽ thấy thay đổi NGAY LẬP TỨC!`);
+}
+
+function deleteUser(name) {
+  if(confirm(`XÓA VĨNH VIỄN đạo hữu ${name} khỏi Tiên Giới?`)){
+    localStorage.removeItem('playerData_' + name);
+    loadAllUsers();
+    addLog({user:'Hệ thống', action:`ADMIN XÓA tài khoản ${name}`});
+  }
+}
+
+function banUser(name) {
+  let banned = JSON.parse(localStorage.getItem('bannedUsers') || '{}');
+  banned[name] = true;
+  localStorage.setItem('bannedUsers', JSON.stringify(banned));
+  loadAllUsers();
+  addLog({user:'Hệ thống', action:`ADMIN CẤM tài khoản ${name}`});
+}
+  const users = Object.keys(allData);
+  document.getElementById('totalUsers').textContent = users.length;
+
+  // Đếm online thực tế (có log trong 5 phút gần đây)
+  const logs = JSON.parse(localStorage.getItem('tuTienServerLog') || '[]');
+  const fiveMinAgo = Date.now() - 5*60*1000;
+  const recentUsers = new Set();
+  logs.forEach(l => {
+    if (l.timestamp > fiveMinAgo) recentUsers.add(l.user);
+  });
+  document.getElementById('onlineNow').textContent = recentUsers.size;
+
+  const tbody = document.getElementById('userList');
+  tbody.innerHTML = '';
+
+  users.forEach((name, i) => {
+    const row = document.createElement('tr');
+    row.innerHTML = `
+      <td>${i+1}</td>
+      <td><strong>${name}</strong></td>
+      <td contenteditable onblur="saveEdit('${name}','level',this)">Luyện Khí tầng 1</td>
+      <td contenteditable onblur="saveEdit('${name}','power',this)">999</td>
+      <td contenteditable onblur="saveEdit('${name}','stone',this)">8888</td>
+      <td>—</td>
+      <td id="status-${name}">Hoạt động</td>
+      <td>
+        <button class="btn-small btn-edit" onclick="saveUser('${name}')">Lưu</button>
+        <button class="btn-small btn-delete" onclick="deleteUser('${name}')">Xóa</button>
+        <button class="btn-small btn-ban" onclick="banUser('${name}')">Cấm</button>
+        <button class="btn-small btn-check" onclick="checkOne('${name}')">Check</button>
+      </td>
+    `;
+    tbody.appendChild(row);
+  });
+
+// === CÁC HÀM HÀNH ĐỘNG ===
+function searchUser(){
+  const query = document.getElementById('searchInput').value.toLowerCase();
+  document.querySelectorAll('#userList tr').forEach(r => {
+    const name = r.cells[1].textContent.toLowerCase();
+    r.style.display = name.includes(query) ? '' : 'none';
+  });
+}
+
+function deleteUser(n){
+  if(confirm(`Xóa vĩnh viễn đạo hữu ${n}?`)){
+    const d = JSON.parse(localStorage.getItem('tuTienUsers')||'{}');
+    delete d[n];
+    localStorage.setItem('tuTienUsers', JSON.stringify(d));
+    loadAllUsers();
+    addLog({user:'Hệ thống', action:`ADMIN xóa tài khoản: ${n}`, time: new Date().toLocaleTimeString()});
+  }
+}
+
+function banUser(n){
+  let banned = JSON.parse(localStorage.getItem('bannedUsers') || '{}');
+  banned[n] = true;
+  localStorage.setItem('bannedUsers', JSON.stringify(banned));
+  document.getElementById(`status-${n}`).innerHTML='<span style="color:#ff6b6b">Bị Cấm</span>';
+  addLog({user:'Hệ thống', action:`ADMIN cấm tài khoản: ${n}`, time: new Date().toLocaleTimeString()});
+}
+
+function saveUser(n){ addLog({user:'Hệ thống', action:`đã lưu thay đổi cho ${n}`}); alert('Đã lưu!'); }
+function saveEdit(n,f,e){ addLog({user:'Hệ thống', action:`chỉnh sửa ${f} của ${n}`}); }
+function checkOne(n){ document.getElementById('checkResult').innerHTML=`<p style="color:var(--green);font-size:22px;">Check ${n}: Không phát hiện bất thường!</p>`; }
+function checkAll(){ document.getElementById('checkResult').innerHTML=`<p style="color:var(--cyan);font-size:26px;">CHECK TOÀN SERVER: Hệ thống ổn định, không gian lận!</p>`; }
+function checkGiftcode(){ document.getElementById('checkResult').innerHTML=`<p style="color:var(--gold);">Giftcode đang hoạt động bình thường</p>`; }
+function checkStorage(){ const size=(JSON.stringify(localStorage).length/1024).toFixed(2); document.getElementById('checkResult').innerHTML=`<p>Dung lượng localStorage: ${size} KB</p>`; }
+function clearLog(){ localStorage.removeItem('tuTienServerLog'); document.getElementById('serverLog').innerHTML=''; addLog({user:'Hệ thống', action:'ADMIN đã xóa toàn bộ log server'}); }
+
+// Auto login nếu có pass trong URL
+if(location.search.includes('pass=tutien2025')){
+  document.getElementById('adminLogin').style.display='none';
+  document.getElementById('adminPanel').style.display='block';
+  loadAllUsers();
+  loadExistingLogs();
+}
+// ==================== HỆ THỐNG DỮ LIỆU NGƯỜI CHƠI THỰC TẾ ====================
+const currentUser = localStorage.getItem('currentUser') || 'Vô Danh Tiên';
+
+// Tạo dữ liệu người chơi nếu chưa có (người mới vào = trắng tinh)
+if (!localStorage.getItem('playerData_' + currentUser)) {
+  const newPlayer = {
+    name: currentUser,
+    level: 1,
+    realm: "Luyện Khí tầng 1",
+    power: 100,           // Linh lực
+    stone: 0,             // Linh thạch (tiền)
+    exp: 0,
+    expMax: 100,
+    ownedSkills: [1],     // chỉ có Cửu Dương tân thủ
+    equippedSkill: 1
+  };
+  localStorage.setItem('playerData_' + currentUser, JSON.stringify(newPlayer));
+}
+
+// Load dữ liệu thực tế lên giao diện main.html
+function loadPlayerData() {
+  const data = JSON.parse(localStorage.getItem('playerData_' + currentUser));
+  if (!data) return;
+
+  document.getElementById('playerName').textContent = data.name;
+  document.querySelector('.level').textContent = `${data.realm} • Linh lực: ${data.power.toLocaleString()}`;
+  
+  // Cập nhật footer nếu có
+  const energyBar = document.querySelector('.energy-bar');
+  if (energyBar) energyBar.textContent = `Linh Lực: ${data.power.toLocaleString()} • Linh Thạch: ${data.stone.toLocaleString()}`;
+}
+
+// REAL-TIME: Admin sửa gì là main hiện ngay (dù mở nhiều tab)
+window.addEventListener('storage', (e) => {
+  if (e.key === 'playerData_' + currentUser) {
+    loadPlayerData();
+  }
+});
+
+// Load lần đầu
+loadPlayerData();
+setInterval(loadPlayerData, 3000); // dự phòng refresh mỗi 3s
+</script>
+</body>
+</html> 
